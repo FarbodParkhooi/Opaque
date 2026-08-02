@@ -1,9 +1,18 @@
-import eel, os, json, base64, mimetypes, uuid, tempfile
+import eel, os, json, base64, mimetypes, uuid, tempfile, sys
 from datetime import datetime
 from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog
 
+# ------------------------------------------------------------
+# Determine the web files folder (works for dev and frozen EXE)
+if getattr(sys, 'frozen', False):
+    # Running as a PyInstaller bundle
+    base_dir = Path(sys._MEIPASS)
+else:
+    base_dir = Path(__file__).parent
+
+# ------------------------------------------------------------
 class CustomCipher:
     @staticmethod
     def encrypt(data): return data
@@ -12,7 +21,7 @@ class CustomCipher:
 
 class Vault:
     def __init__(self):
-        self.vault_dir = Path(__file__).parent / "vault"
+        self.vault_dir = Path(__file__).parent / "vault" if not getattr(sys, 'frozen', False) else Path(sys.executable).parent / "vault"
         self.vault_dir.mkdir(parents=True, exist_ok=True)
         self.meta_file = self.vault_dir / "vault.json"
         self.meta = []
@@ -88,12 +97,12 @@ class Vault:
 
 vault = Vault()
 
+# ---------- Exposed functions ----------
 @eel.expose
 def getFiles(): return vault.get_files()
 
 @eel.expose
 def selectFiles():
-    """Multi‑file selector (Ctrl/Shift to pick several)."""
     root = tk.Tk()
     root.withdraw()
     root.attributes('-topmost', True)
@@ -103,7 +112,6 @@ def selectFiles():
 
 @eel.expose
 def selectFolder():
-    """Folder selector – returns the folder path and a list of all files inside it."""
     root = tk.Tk()
     root.withdraw()
     root.attributes('-topmost', True)
@@ -111,7 +119,6 @@ def selectFolder():
     root.destroy()
     if not folder:
         return []
-    # Collect every file recursively
     files = [str(p) for p in Path(folder).rglob('*') if p.is_file()]
     return files
 
@@ -149,6 +156,9 @@ def exportFile(file_id):
         return True
     return False
 
+# ---------- Start the app ----------
 if __name__ == "__main__":
-    eel.init(str(Path(__file__).parent))
-    eel.start("ui/index.html", size=(1200, 800), mode="chrome")
+    # Tell Eel the folder containing index.html
+    eel.init(str(base_dir))
+    # Use a random available port to avoid conflicts
+    eel.start("index.html", size=(1200, 800), mode="chrome", port=0)
