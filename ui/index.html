@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opaque · Encrypted Vault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Animated background particles container -->
+  <div class="cosmic-bg" id="cosmicBg"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar glass-panel">
+      <div class="logo">
+        <span class="logo-icon">🔮</span>
+        <span class="logo-text">Opaque</span>
+      </div>
+      <nav class="nav">
+        <div class="nav-item active" data-page="files">
+          <span class="nav-icon">📁</span>
+          <span>My Vault</span>
+          <div class="nav-glow"></div>
+        </div>
+        <div class="nav-item" data-page="encrypt">
+          <span class="nav-icon">✨</span>
+          <span>Encrypt</span>
+          <div class="nav-glow"></div>
+        </div>
+        <div class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙️</span>
+          <span>Settings</span>
+          <div class="nav-glow"></div>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="footer-rune">⛧</div>
+        <span>Protected by Opaque</span>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <!-- Files Page -->
+      <section id="page-files" class="page active">
+        <div class="page-header">
+          <h2 class="page-title">✨ Arcane Vault</h2>
+          <button class="btn-glass" id="refreshFilesBtn">
+            <span>↻</span> Refresh
+          </button>
+        </div>
+        <div class="vault-grid glass-panel" id="filesContainer">
+          <div class="empty-vault" id="emptyState">
+            <div class="empty-icon">🔒</div>
+            <p>The vault is empty</p>
+            <p class="sub">Encrypt files to see them here</p>
+          </div>
+          <!-- File cards will be injected dynamically -->
+        </div>
+      </section>
+
+      <!-- Encrypt Page -->
+      <section id="page-encrypt" class="page">
+        <div class="page-header">
+          <h2 class="page-title">⚡ Arcane Encryption</h2>
+        </div>
+        <div class="dropzone glass-panel" id="dropzone">
+          <div class="drop-icon">📜</div>
+          <p>Drop files here or click to browse</p>
+          <p class="drop-sub">Original files will be consumed by the spell</p>
+        </div>
+        <input type="file" id="fileInput" multiple hidden>
+        <div class="selected-files glass-panel" id="selectedFilesContainer" style="display:none;">
+          <h3>📋 Chosen Offerings</h3>
+          <div id="selectedFilesList"></div>
+        </div>
+        <button class="btn-primary" id="encryptBtn" disabled>
+          <span>🔮</span> Cast Encryption
+        </button>
+        <div class="progress-container" id="progressWrapper" style="display:none;">
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span class="progress-text" id="progressText">0%</span>
+        </div>
+      </section>
+
+      <!-- Settings Page -->
+      <section id="page-settings" class="page">
+        <div class="page-header">
+          <h2 class="page-title">⚙️ Arcane Config</h2>
+        </div>
+        <div class="settings-card glass-panel">
+          <p>Opaque uses a unique cipher bound to this device.</p>
+          <p class="sub">Only those who hold the key may gaze upon the secrets within.</p>
+          <div class="settings-divider"></div>
+          <p class="sub">All encrypted files are stored in the ethereal plane.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- File Viewer Modal -->
+  <div class="modal" id="viewerModal">
+    <div class="modal-content glass-panel">
+      <button class="modal-close" id="closeViewer">&times;</button>
+      <div id="viewerContent"></div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
