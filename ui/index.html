@@ -3,118 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Opaque · Encrypted Vault</title>
+  <title>Opaque · Secure Vault</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- Eel injects /eel.js automatically -->
 </head>
 <body>
-  <!-- Animated background particles container -->
-  <div class="cosmic-bg" id="cosmicBg"></div>
-
-  <div class="app-container">
-    <!-- Sidebar -->
-    <aside class="sidebar glass-panel">
-      <div class="logo">
-        <span class="logo-icon">🔮</span>
-        <span class="logo-text">Opaque</span>
-      </div>
-      <nav class="nav">
-        <div class="nav-item active" data-page="files">
-          <span class="nav-icon">📁</span>
-          <span>My Vault</span>
-          <div class="nav-glow"></div>
-        </div>
-        <div class="nav-item" data-page="encrypt">
-          <span class="nav-icon">✨</span>
-          <span>Encrypt</span>
-          <div class="nav-glow"></div>
-        </div>
-        <div class="nav-item" data-page="settings">
-          <span class="nav-icon">⚙️</span>
-          <span>Settings</span>
-          <div class="nav-glow"></div>
-        </div>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="footer-rune">⛧</div>
-        <span>Protected by Opaque</span>
-      </div>
-    </aside>
-
-    <!-- Main content -->
-    <main class="main-content">
-      <!-- Files Page -->
-      <section id="page-files" class="page active">
-        <div class="page-header">
-          <h2 class="page-title">✨ Arcane Vault</h2>
-          <button class="btn-glass" id="refreshFilesBtn">
-            <span>↻</span> Refresh
-          </button>
-        </div>
-        <div class="vault-grid glass-panel" id="filesContainer">
-          <div class="empty-vault" id="emptyState">
-            <div class="empty-icon">🔒</div>
-            <p>The vault is empty</p>
-            <p class="sub">Encrypt files to see them here</p>
-          </div>
-          <!-- File cards will be injected dynamically -->
-        </div>
-      </section>
-
-      <!-- Encrypt Page -->
-      <section id="page-encrypt" class="page">
-        <div class="page-header">
-          <h2 class="page-title">⚡ Arcane Encryption</h2>
-        </div>
-        <div class="dropzone glass-panel" id="dropzone">
-          <div class="drop-icon">📜</div>
-          <p>Drop files here or click to browse</p>
-          <p class="drop-sub">Original files will be consumed by the spell</p>
-        </div>
-        <input type="file" id="fileInput" multiple hidden>
-        <div class="selected-files glass-panel" id="selectedFilesContainer" style="display:none;">
-          <h3>📋 Chosen Offerings</h3>
-          <div id="selectedFilesList"></div>
-        </div>
-        <button class="btn-primary" id="encryptBtn" disabled>
-          <span>🔮</span> Cast Encryption
-        </button>
-        <div class="progress-container" id="progressWrapper" style="display:none;">
-          <div class="progress-track">
-            <div class="progress-fill" id="progressFill"></div>
-          </div>
-          <span class="progress-text" id="progressText">0%</span>
-        </div>
-      </section>
-
-      <!-- Settings Page -->
-      <section id="page-settings" class="page">
-        <div class="page-header">
-          <h2 class="page-title">⚙️ Arcane Config</h2>
-        </div>
-        <div class="settings-card glass-panel">
-          <p>Opaque uses a unique cipher bound to this device.</p>
-          <p class="sub">Only those who hold the key may gaze upon the secrets within.</p>
-          <div class="settings-divider"></div>
-          <p class="sub">All encrypted files are stored in the ethereal plane.</p>
-        </div>
-      </section>
-    </main>
+  <div class="sidebar">
+    <div class="logo">🔒 Opaque</div>
+    <div class="nav-item active" data-page="files">📁 My Vault</div>
+    <div class="nav-item" data-page="encrypt">✨ Encrypt</div>
+    <div class="nav-item" data-page="settings">⚙️ Settings</div>
   </div>
 
-  <!-- File Viewer Modal -->
+  <div class="main">
+    <!-- Files Page -->
+    <section id="page-files" class="page active">
+      <div class="page-header">
+        <h2 class="page-title">My Vault</h2>
+        <button class="btn" id="refreshFilesBtn">↻ Refresh</button>
+      </div>
+      <div class="files-grid" id="filesContainer">
+        <div class="empty-state">
+          <div class="empty-icon">🔒</div>
+          <p>The vault is empty</p>
+          <p style="font-size:0.8rem;">Encrypt files to see them here.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Encrypt Page -->
+    <section id="page-encrypt" class="page">
+      <div class="page-header">
+        <h2 class="page-title">Encrypt Files</h2>
+      </div>
+      <div class="dropzone" id="dropzone">
+        <div class="drop-icon">📂</div>
+        <div class="drop-text">Click or drop files here to encrypt</div>
+        <div class="drop-sub">Original files will be deleted after encryption</div>
+      </div>
+      <div class="selected-files" id="selectedFilesContainer" style="display:none;">
+        <div style="font-weight:600; margin-bottom:12px;">📋 Selected files</div>
+        <div id="selectedFilesList"></div>
+      </div>
+      <button class="btn btn-primary" id="encryptBtn" disabled>🔒 Encrypt All</button>
+      <div class="progress-container" id="progressWrapper" style="display:none;">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="progress-text" id="progressText">0%</span>
+      </div>
+    </section>
+
+        <!-- Settings Page -->
+    <section id="page-settings" class="page">
+      <div class="page-header">
+        <h2 class="page-title">Settings</h2>
+      </div>
+      <div class="settings-grid">
+        <!-- General Settings Card -->
+        <div class="settings-card">
+          <h3>🎨 Appearance</h3>
+          <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 16px;">Choose your preferred theme.</p>
+          <div class="theme-selector" id="themeSelector">
+            <!-- Themes will be injected by JS -->
+          </div>
+        </div>
+
+        <!-- About Card -->
+        <div class="settings-card">
+          <h3>🔒 About Opaque</h3>
+          <p style="color: var(--text-muted); font-size:0.9rem; margin-top: 12px;">Opaque uses a proprietary encryption method.</p>
+          <p style="color: var(--text-muted); font-size:0.9rem;">All encrypted files are stored securely and can only be viewed within this app.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Viewer Modal -->
   <div class="modal" id="viewerModal">
-    <div class="modal-content glass-panel">
+    <div class="modal-content">
       <button class="modal-close" id="closeViewer">&times;</button>
       <div id="viewerContent"></div>
     </div>
   </div>
 
-  <!-- Toast container -->
   <div class="toast-container" id="toastContainer"></div>
 
+  <script type="text/javascript" src="/eel.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
