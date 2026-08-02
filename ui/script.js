@@ -16,6 +16,38 @@
       const openFileExternally = async (id) => await eel.openFileExternally(id);
       const exportFile      = async (id) => await eel.exportFile(id)();
 
+      // ─── Custom Confirmation Modal ────────
+      function showConfirm(message) {
+        return new Promise((resolve) => {
+          const modal = document.getElementById('confirmModal');
+          const msgEl = document.getElementById('confirmMessage');
+          const yesBtn = document.getElementById('confirmYes');
+          const noBtn = document.getElementById('confirmNo');
+
+          msgEl.textContent = message;
+          modal.classList.add('active');
+
+          function cleanup() {
+            modal.classList.remove('active');
+            yesBtn.removeEventListener('click', onYes);
+            noBtn.removeEventListener('click', onNo);
+          }
+
+          function onYes() {
+            cleanup();
+            resolve(true);
+          }
+
+          function onNo() {
+            cleanup();
+            resolve(false);
+          }
+
+          yesBtn.addEventListener('click', onYes);
+          noBtn.addEventListener('click', onNo);
+        });
+      }
+
       // ─── Navigation ──────────────────────
       document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => {
@@ -55,12 +87,14 @@
       // ─── Vault (My Files) ────────────────
       const filesContainer = document.getElementById('filesContainer');
       const refreshBtn = document.getElementById('refreshFilesBtn');
+
       async function loadFiles() {
         try {
           const files = await getFiles();
           renderFiles(files || []);
         } catch (err) { showToast('Error loading files', 'error'); }
       }
+
       function renderFiles(files) {
         filesContainer.innerHTML = '';
         if (!files.length) {
@@ -88,15 +122,15 @@
           };
           card.querySelector('.export').onclick = async (e) => {
             e.stopPropagation();
-            if (!confirm('Export file?')) return;
+            if (!(await showConfirm('Save this file to your computer?'))) return;
             try {
               const ok = await exportFile(file.id);
-              showToast(ok ? 'Saved!' : 'Cancelled', ok ? 'success' : 'error');
+              showToast(ok ? 'File saved!' : 'Export cancelled', ok ? 'success' : 'error');
             } catch (err) { showToast('Export failed', 'error'); }
           };
           card.querySelector('.delete').onclick = async (e) => {
             e.stopPropagation();
-            if (!confirm('Delete?')) return;
+            if (!(await showConfirm('Delete this encrypted file? It cannot be undone.'))) return;
             try {
               await deleteFile(file.id);
               showToast('Deleted', 'success');
@@ -118,7 +152,6 @@
       const progressText = document.getElementById('progressText');
       let selectedPaths = [];
 
-      // Multi‑file selector (click on dropzone)
       dropzone.addEventListener('click', async () => {
         try {
           const paths = await selectFiles();
@@ -129,7 +162,6 @@
         } catch (err) { showToast('File selection error', 'error'); }
       });
 
-      // Folder selector button
       selectFolderBtn.addEventListener('click', async () => {
         try {
           const folderFiles = await selectFolder();
@@ -140,7 +172,6 @@
         } catch (err) { showToast('Folder selection error', 'error'); }
       });
 
-      // Drag‑and‑drop on dropzone (same as click)
       dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
       dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
       dropzone.addEventListener('drop', async e => {
@@ -221,11 +252,119 @@
         viewerModal.classList.add('active');
       }
 
-      // ─── Custom Media Players (unchanged) ─
-      function createAudioPlayer(dataUrl, fileName) { /* ... copy from earlier complete file ... */ }
-      function createVideoPlayer(dataUrl, fileName) { /* ... copy from earlier complete file ... */ }
+      // ─── Custom Media Players ────────────
+      function createAudioPlayer(dataUrl, fileName) {
+        const container = document.createElement('div');
+        container.className = 'custom-player';
+        container.innerHTML = `
+          <div class="player-header">
+            <div class="player-cover">🎵</div>
+            <div class="player-title">${fileName}</div>
+          </div>
+          <div class="player-controls">
+            <button class="player-btn play-btn">
+              <span class="play-icon"></span>
+              <span class="pause-icon"></span>
+            </button>
+            <div class="player-progress">
+              <div class="player-progress-filled" style="width:0%"></div>
+            </div>
+            <span class="player-time">0:00 / 0:00</span>
+          </div>
+        `;
+        const audio = new Audio(dataUrl);
+        const playBtn = container.querySelector('.play-btn');
+        const progressFilled = container.querySelector('.player-progress-filled');
+        const progressBar = container.querySelector('.player-progress');
+        const timeDisplay = container.querySelector('.player-time');
 
-      // ─── Theme Manager (unchanged) ────────
+        function updateTime() {
+          const current = formatTime(audio.currentTime);
+          const total = formatTime(audio.duration || 0);
+          timeDisplay.textContent = `${current} / ${total}`;
+          if (audio.duration) {
+            progressFilled.style.width = (audio.currentTime / audio.duration * 100) + '%';
+          }
+        }
+        function formatTime(seconds) {
+          const m = Math.floor(seconds / 60);
+          const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+          return `${m}:${s}`;
+        }
+        playBtn.addEventListener('click', () => {
+          if (audio.paused) { audio.play(); playBtn.classList.add('playing'); }
+          else { audio.pause(); playBtn.classList.remove('playing'); }
+        });
+        audio.addEventListener('timeupdate', updateTime);
+        audio.addEventListener('loadedmetadata', updateTime);
+        audio.addEventListener('ended', () => playBtn.classList.remove('playing'));
+        progressBar.addEventListener('click', (e) => {
+          if (!audio.duration) return;
+          const rect = progressBar.getBoundingClientRect();
+          const pct = (e.clientX - rect.left) / rect.width;
+          audio.currentTime = pct * audio.duration;
+        });
+        return container;
+      }
+
+      function createVideoPlayer(dataUrl, fileName) {
+        const container = document.createElement('div');
+        container.className = 'video-container';
+        container.innerHTML = `
+          <video class="viewer-video" preload="metadata">
+            <source src="${dataUrl}">
+          </video>
+          <div class="video-controls">
+            <button class="player-btn play-btn">
+              <span class="play-icon"></span>
+              <span class="pause-icon"></span>
+            </button>
+            <div class="player-progress">
+              <div class="player-progress-filled" style="width:0%"></div>
+            </div>
+            <span class="player-time">0:00 / 0:00</span>
+          </div>
+        `;
+        const video = container.querySelector('video');
+        const playBtn = container.querySelector('.play-btn');
+        const progressFilled = container.querySelector('.player-progress-filled');
+        const progressBar = container.querySelector('.player-progress');
+        const timeDisplay = container.querySelector('.player-time');
+
+        function updateTime() {
+          const current = formatTime(video.currentTime);
+          const total = formatTime(video.duration || 0);
+          timeDisplay.textContent = `${current} / ${total}`;
+          if (video.duration) {
+            progressFilled.style.width = (video.currentTime / video.duration * 100) + '%';
+          }
+        }
+        function formatTime(seconds) {
+          const m = Math.floor(seconds / 60);
+          const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+          return `${m}:${s}`;
+        }
+        playBtn.addEventListener('click', () => {
+          if (video.paused) { video.play(); playBtn.classList.add('playing'); }
+          else { video.pause(); playBtn.classList.remove('playing'); }
+        });
+        video.addEventListener('click', () => {
+          if (video.paused) { video.play(); playBtn.classList.add('playing'); }
+          else { video.pause(); playBtn.classList.remove('playing'); }
+        });
+        video.addEventListener('timeupdate', updateTime);
+        video.addEventListener('loadedmetadata', updateTime);
+        video.addEventListener('ended', () => playBtn.classList.remove('playing'));
+        progressBar.addEventListener('click', (e) => {
+          if (!video.duration) return;
+          const rect = progressBar.getBoundingClientRect();
+          const pct = (e.clientX - rect.left) / rect.width;
+          video.currentTime = pct * video.duration;
+        });
+        return container;
+      }
+
+      // ─── Theme Manager ────────────────────
       const themeSelector = document.getElementById('themeSelector');
       if (themeSelector) {
         const themes = [
