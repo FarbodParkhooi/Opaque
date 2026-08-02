@@ -10,11 +10,50 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="sidebar">
-    <div class="logo">🔒 Opaque</div>
-    <div class="nav-item active" data-page="files">📁 My Vault</div>
-    <div class="nav-item" data-page="encrypt">✨ Encrypt</div>
-    <div class="nav-item" data-page="settings">⚙️ Settings</div>
+  <!-- Instantly apply the saved theme before anything renders -->
+  <script>
+    (function() {
+      var saved = localStorage.getItem('opaque-theme');
+      if (saved) {
+        document.body.setAttribute('data-theme', saved);
+      }
+    })();
+  </script>
+
+  <!-- Animated background particles -->
+  <div class="bg-animation">
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+  </div>
+
+  <div class="sidebar glass">
+    <div class="logo">
+      <span class="logo-icon">🔮</span>
+      <span class="logo-text">Opaque</span>
+    </div>
+    <div class="nav-item active" data-page="files">
+      <span class="nav-icon">📁</span> My Vault
+      <div class="nav-glow"></div>
+    </div>
+    <div class="nav-item" data-page="encrypt">
+      <span class="nav-icon">✨</span> Encrypt
+      <div class="nav-glow"></div>
+    </div>
+    <div class="nav-item" data-page="people">
+      <span class="nav-icon">👤</span> People
+      <div class="nav-glow"></div>
+    </div>
+    <div class="nav-item" data-page="settings">
+      <span class="nav-icon">⚙️</span> Settings
+      <div class="nav-glow"></div>
+    </div>
+    <div class="sidebar-footer">
+      <span>Protected by Opaque</span>
+    </div>
   </div>
 
   <div class="main">
@@ -22,13 +61,13 @@
     <section id="page-files" class="page active">
       <div class="page-header">
         <h2 class="page-title">My Vault</h2>
-        <button class="btn" id="refreshFilesBtn">↻ Refresh</button>
+        <button class="btn glass" id="refreshFilesBtn">↻ Refresh</button>
       </div>
       <div class="files-grid" id="filesContainer">
         <div class="empty-state">
           <div class="empty-icon">🔒</div>
           <p>The vault is empty</p>
-          <p style="font-size:0.8rem;">Encrypt files to see them here.</p>
+          <p class="sub">Encrypt files to see them here.</p>
         </div>
       </div>
     </section>
@@ -38,18 +77,16 @@
       <div class="page-header">
         <h2 class="page-title">Encrypt Files</h2>
       </div>
-      <div class="dropzone" id="dropzone">
+      <div class="dropzone glass" id="dropzone">
         <div class="drop-icon">📂</div>
-        <div class="drop-text">Click here to select files (multiple allowed)</div>
-        <div class="drop-sub">Use Ctrl or Shift to pick several files</div>
+        <div class="drop-text">Click or drop files here</div>
+        <div class="drop-sub">Use Ctrl or Shift for multiple files</div>
       </div>
-      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-        <button class="btn" id="selectFolderBtn">
-          <span>📁</span> Encrypt Entire Folder
-        </button>
+      <div style="display:flex; gap:12px; margin-bottom:20px;">
+        <button class="btn glass" id="selectFolderBtn"><span>📁</span> Encrypt Entire Folder</button>
       </div>
-      <div class="selected-files" id="selectedFilesContainer" style="display:none;">
-        <div style="font-weight:600; margin-bottom:12px;">📋 Selected files</div>
+      <div class="selected-files glass" id="selectedFilesContainer" style="display:none;">
+        <div class="selected-title">📋 Selected files</div>
         <div id="selectedFilesList"></div>
       </div>
       <button class="btn btn-primary" id="encryptBtn" disabled>🔒 Encrypt All Selected</button>
@@ -59,37 +96,73 @@
       </div>
     </section>
 
+    <!-- People Page -->
+    <section id="page-people" class="page">
+      <div class="page-header">
+        <h2 class="page-title">People</h2>
+        <button class="btn glass" id="processNowBtn"><span>🔄</span> Scan Now</button>
+      </div>
+      <div class="people-grid" id="peopleContainer">
+        <div class="empty-state">
+          <div class="empty-icon">👤</div>
+          <p>No people detected yet</p>
+          <p class="sub">Add images/videos – they will be scanned automatically.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- Settings Page -->
     <section id="page-settings" class="page">
       <div class="page-header">
         <h2 class="page-title">Settings</h2>
       </div>
       <div class="settings-grid">
-        <div class="settings-card">
+        <div class="settings-card glass">
           <h3>🎨 Appearance</h3>
-          <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 16px;">Choose your preferred theme.</p>
+          <p class="settings-sub">Choose your preferred theme.</p>
           <div class="theme-selector" id="themeSelector"></div>
         </div>
-        <div class="settings-card">
+        <div class="settings-card glass">
           <h3>🔒 About Opaque</h3>
-          <p style="color: var(--text-muted); font-size:0.9rem; margin-top: 12px;">Opaque uses a proprietary encryption method.</p>
-          <p style="color: var(--text-muted); font-size:0.9rem;">All encrypted files are stored securely and can only be viewed within this app.</p>
+          <p class="settings-sub">Opaque uses a proprietary encryption method.</p>
+          <p class="settings-sub">All encrypted files are stored securely and can only be viewed within this app.</p>
         </div>
       </div>
     </section>
   </div>
 
-  <!-- File Viewer Modal -->
+  <!-- Viewer Modal -->
   <div class="modal" id="viewerModal">
-    <div class="modal-content">
+    <div class="modal-content glass">
       <button class="modal-close" id="closeViewer">&times;</button>
       <div id="viewerContent"></div>
     </div>
   </div>
 
-  <!-- Custom Confirmation Modal -->
+  <!-- Rename Modal -->
+  <div class="modal" id="renameModal">
+    <div class="modal-content glass modal-sm">
+      <button class="modal-close" id="closeRename">&times;</button>
+      <h3>Rename Person</h3>
+      <div class="form-group">
+        <label>New name</label>
+        <input type="text" id="renameInput" class="text-input" placeholder="e.g. John">
+      </div>
+      <button class="btn btn-primary" id="saveRenameBtn">💾 Save</button>
+    </div>
+  </div>
+
+  <!-- Person Media Modal -->
+  <div class="modal" id="personMediaModal">
+    <div class="modal-content glass">
+      <button class="modal-close" id="closePersonMedia">&times;</button>
+      <div id="personMediaContent"></div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
   <div class="modal" id="confirmModal">
-    <div class="modal-content confirm-content">
+    <div class="modal-content glass modal-sm confirm-content">
       <div class="confirm-message" id="confirmMessage"></div>
       <div class="confirm-buttons">
         <button class="btn" id="confirmNo">Cancel</button>
