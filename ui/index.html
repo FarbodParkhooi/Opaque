@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <!-- Eel injects /eel.js automatically -->
 </head>
 <body>
   <div class="sidebar">
@@ -39,38 +38,48 @@
       <div class="page-header">
         <h2 class="page-title">Encrypt Files</h2>
       </div>
+
+      <!-- File selection dropzone -->
       <div class="dropzone" id="dropzone">
         <div class="drop-icon">📂</div>
-        <div class="drop-text">Click or drop files here to encrypt</div>
-        <div class="drop-sub">Original files will be deleted after encryption</div>
+        <div class="drop-text">Click here to select files (multiple allowed)</div>
+        <div class="drop-sub">Use Ctrl or Shift to pick several files</div>
       </div>
+
+      <!-- Folder encryption button -->
+      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+        <button class="btn" id="selectFolderBtn">
+          <span>📁</span> Encrypt Entire Folder
+        </button>
+      </div>
+
+      <!-- Selected files list -->
       <div class="selected-files" id="selectedFilesContainer" style="display:none;">
         <div style="font-weight:600; margin-bottom:12px;">📋 Selected files</div>
         <div id="selectedFilesList"></div>
       </div>
-      <button class="btn btn-primary" id="encryptBtn" disabled>🔒 Encrypt All</button>
+
+      <!-- Encrypt button -->
+      <button class="btn btn-primary" id="encryptBtn" disabled>🔒 Encrypt All Selected</button>
+
+      <!-- Progress -->
       <div class="progress-container" id="progressWrapper" style="display:none;">
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         <span class="progress-text" id="progressText">0%</span>
       </div>
     </section>
 
-        <!-- Settings Page -->
+    <!-- Settings Page -->
     <section id="page-settings" class="page">
       <div class="page-header">
         <h2 class="page-title">Settings</h2>
       </div>
       <div class="settings-grid">
-        <!-- General Settings Card -->
         <div class="settings-card">
           <h3>🎨 Appearance</h3>
           <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 16px;">Choose your preferred theme.</p>
-          <div class="theme-selector" id="themeSelector">
-            <!-- Themes will be injected by JS -->
-          </div>
+          <div class="theme-selector" id="themeSelector"></div>
         </div>
-
-        <!-- About Card -->
         <div class="settings-card">
           <h3>🔒 About Opaque</h3>
           <p style="color: var(--text-muted); font-size:0.9rem; margin-top: 12px;">Opaque uses a proprietary encryption method.</p>

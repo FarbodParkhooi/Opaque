@@ -1,6 +1,8 @@
-import eel, os, json, base64, mimetypes, uuid, subprocess, tempfile
+import eel, os, json, base64, mimetypes, uuid, tempfile
 from datetime import datetime
 from pathlib import Path
+import tkinter as tk
+from tkinter import filedialog
 
 class CustomCipher:
     @staticmethod
@@ -22,13 +24,12 @@ class Vault:
         else:
             self._save()
 
-    def get_entry(self, fid):
-        return next((m for m in self.meta if m["id"] == fid), None)
-
     def _save(self):
         self.meta_file.write_text(json.dumps(self.meta, indent=2), encoding='utf-8')
 
     def get_files(self): return self.meta
+    def get_entry(self, fid):
+        return next((m for m in self.meta if m["id"] == fid), None)
 
     def encrypt_file(self, path):
         p = Path(path)
@@ -52,7 +53,7 @@ class Vault:
         except: pass
 
     def delete_file(self, fid):
-        entry = next((m for m in self.meta if m["id"] == fid), None)
+        entry = self.get_entry(fid)
         if not entry: raise ValueError("File not found")
         enc_path = Path(entry["encryptedPath"])
         if enc_path.exists(): enc_path.unlink()
@@ -60,7 +61,7 @@ class Vault:
         self._save()
 
     def decrypt_file(self, fid):
-        entry = next((m for m in self.meta if m["id"] == fid), None)
+        entry = self.get_entry(fid)
         if not entry: raise ValueError("File not found")
         enc_path = Path(entry["encryptedPath"])
         if not enc_path.exists(): raise FileNotFoundError(str(enc_path))
@@ -74,7 +75,7 @@ class Vault:
         return {"fileName": entry["originalName"], "mimeType": mime, "data": b64}
 
     def open_file_externally(self, fid):
-        entry = next((m for m in self.meta if m["id"] == fid), None)
+        entry = self.get_entry(fid)
         if not entry: raise ValueError("File not found")
         enc_path = Path(entry["encryptedPath"])
         if not enc_path.exists(): raise FileNotFoundError(str(enc_path))
@@ -92,23 +93,27 @@ def getFiles(): return vault.get_files()
 
 @eel.expose
 def selectFiles():
-    ps_script = r"""
-Add-Type -AssemblyName System.Windows.Forms
-$dialog = New-Object System.Windows.Forms.OpenFileDialog
-$dialog.Multiselect = $true
-$dialog.Filter = 'All Files (*.*)|*.*'
-$dialog.Title = 'Select files to encrypt'
-if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $dialog.FileNames }
-"""
-    try:
-        result = subprocess.run(["powershell.exe", "-NoProfile", "-Command", ps_script],
-                                capture_output=True, text=True, timeout=60)
-        if result.returncode == 0 and result.stdout.strip():
-            return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    """Multi‑file selector (Ctrl/Shift to pick several)."""
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    paths = filedialog.askopenfilenames(title="Select files to encrypt")
+    root.destroy()
+    return list(paths)
+
+@eel.expose
+def selectFolder():
+    """Folder selector – returns the folder path and a list of all files inside it."""
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    folder = filedialog.askdirectory(title="Select folder to encrypt")
+    root.destroy()
+    if not folder:
         return []
-    except Exception as e:
-        print("File dialog error:", e)
-        return []
+    # Collect every file recursively
+    files = [str(p) for p in Path(folder).rglob('*') if p.is_file()]
+    return files
 
 @eel.expose
 def encryptFile(file_path): vault.encrypt_file(file_path)
@@ -124,41 +129,25 @@ def openFileExternally(file_id): vault.open_file_externally(file_id)
 
 @eel.expose
 def exportFile(file_id):
-    """Decrypt and save the file to a user-chosen location. Returns True on success."""
-    entry = next((m for m in vault._Vault__meta if m["id"] == file_id), None)  
-    if not entry:
-        raise ValueError("File not found")
+    entry = vault.get_entry(file_id)
+    if not entry: raise ValueError("File not found")
     enc_path = Path(entry["encryptedPath"])
-    if not enc_path.exists():
-        raise FileNotFoundError(str(enc_path))
-    
-    # Decrypt data
+    if not enc_path.exists(): raise FileNotFoundError(str(enc_path))
     data = CustomCipher.decrypt(enc_path.read_bytes())
-    
-    # Use PowerShell save dialog to choose output path, prefilled with original name
-    ps_script = f"""
-Add-Type -AssemblyName System.Windows.Forms
-$dialog = New-Object System.Windows.Forms.SaveFileDialog
-$dialog.FileName = '{entry["originalName"]}'
-$dialog.Filter = 'All Files (*.*)|*.*'
-$dialog.Title = 'Save decrypted file as'
-if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {{
-    $dialog.FileName
-}}
-"""
-    try:
-        result = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-Command", ps_script],
-            capture_output=True, text=True, timeout=60
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            output_path = result.stdout.strip()
-            Path(output_path).write_bytes(data)
-            return True
-        return False   # user cancelled
-    except Exception as e:
-        print("Export file dialog error:", e)
-        return False
+
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    out_path = filedialog.asksaveasfilename(
+        initialfile=entry["originalName"],
+        title="Save decrypted file as",
+        filetypes=[("All files", "*.*")]
+    )
+    root.destroy()
+    if out_path:
+        Path(out_path).write_bytes(data)
+        return True
+    return False
 
 if __name__ == "__main__":
     eel.init(str(Path(__file__).parent))
